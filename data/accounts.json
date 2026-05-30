@@ -1,0 +1,18 @@
+{
+  "John Account": {
+    "password": "pass1",
+    "balance": 100.0
+  },
+  "Jane Account": {
+    "password": "pass2",
+    "balance": 0.0
+  },
+  "Johnny1": {
+    "password": "securedpass1",
+    "balance": 0.0
+  },
+  "James2": {
+    "password": "jamespassword1",
+    "balance": 250.0
+  }
+}
