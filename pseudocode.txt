@@ -1,48 +1,104 @@
-start
-ensure data exists
-load account from data
+START PROGRAM
+PRINT "DIGI-WALLET"
 
-function login()
-ask for username
-ask for password
-if username and password equals data from data storage
-then success
-else, retry
+SET paths:
+  BASE_DIR, DATA_DIR, ACCOUNTS_FILE
 
-function register()
-ask for username
-ask for password
-username and password is saved to data storage
+SET DEFAULT_ACCOUNTS with sample users and balances
 
-function account_menu()
-print:
-1. check balance
-2. deposit
-3. withdraw
-4. logout
-ask for input (1-4)
-if choice is 1:
-gets balance
-if choice is 2:
-ask for amount
-save new amount to data storage
-if choice is 3:
-ask for amount
-save new amount to data storage
-if choice is 4:
-return to main menu
+FUNCTION ensure_data_dir():
+  CREATE data folder if missing
 
-function main menu()
-print:
-1. login
-2. register
-3. exit
-ask for input (1-3)
-if 1:
-login()
-if 2:
-register()
-if 3:
-end program
+FUNCTION save_accounts(accounts):
+  ensure_data_dir()
+  WRITE accounts to ACCOUNTS_FILE as JSON
 
+FUNCTION load_accounts():
+  ensure_data_dir()
+  IF ACCOUNTS_FILE does not exist:
+    save_accounts(DEFAULT_ACCOUNTS)
+    RETURN copy of DEFAULT_ACCOUNTS
+  TRY to read JSON from ACCOUNTS_FILE
+    IF data is a dictionary:
+      RETURN data
+  IF read fails or data is invalid:
+    RETURN copy of DEFAULT_ACCOUNTS
 
+SET accounts = load_accounts()
+
+FUNCTION get_positive_amount(prompt):
+  READ input as float
+  IF invalid number OR amount <= 0:
+    PRINT error
+    RETURN None
+  RETURN amount
+
+FUNCTION register():
+  ASK for username
+  IF empty or already exists:
+    PRINT error and RETURN
+  ASK for password
+  IF empty:
+    PRINT error and RETURN
+  CREATE new user with balance 0
+  save_accounts(accounts)
+  PRINT registration success
+
+FUNCTION login():
+  ASK for username and password
+  IF credentials match accounts:
+    PRINT login success
+    CALL account_menu(username)
+  ELSE:
+    PRINT invalid credentials
+
+FUNCTION account_menu(username):
+  LOOP until logout:
+    SHOW options:
+      1 check balance
+      2 deposit
+      3 withdraw
+      4 logout
+    READ choice
+    IF choice == 1:
+      PRINT current balance
+    ELSE IF choice == 2:
+      amount = get_positive_amount()
+      IF amount valid:
+        ADD amount to user balance
+        save_accounts(accounts)
+        PRINT new balance
+    ELSE IF choice == 3:
+      amount = get_positive_amount()
+      IF amount valid:
+        IF amount > current balance:
+          PRINT insufficient funds
+        ELSE:
+          SUBTRACT amount from user balance
+          save_accounts(accounts)
+          PRINT new balance
+    ELSE IF choice == 4:
+      PRINT logged out
+      EXIT loop
+    ELSE:
+      PRINT invalid option
+
+FUNCTION main():
+  LOOP forever:
+    SHOW options:
+      1 login
+      2 register
+      3 exit
+    READ choice
+    IF choice == 1:
+      CALL login()
+    ELSE IF choice == 2:
+      CALL register()
+    ELSE IF choice == 3:
+      PRINT goodbye
+      BREAK loop
+    ELSE:
+      PRINT invalid option
+
+IF script is run directly:
+  CALL main()
